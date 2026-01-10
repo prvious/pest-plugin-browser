@@ -1,3 +1,3 @@
 #!/usr/bin/env sh
 npx playwright --version
-npx -y playwright run-server --port 3000 --host 0.0.0.0
+npx playwright run-server --host 0.0.0.0 --port 3000 --mode launchServer

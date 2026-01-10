@@ -46,3 +46,101 @@ jobs:
 
     - name: Tests
       run: composer test
+
+  # Scenario: Playwright in container, Pest on the host
+  pest-on-host:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        php: ['8.3', '8.4', '8.5']
+        dependency-version: [prefer-stable]
+
+    name: Pest on Host - PHP ${{ matrix.php }}
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v6
+
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: ${{ matrix.php }}
+        tools: composer:v2
+        coverage: xdebug
+
+    - name: Setup Problem Matches
+      run: |
+        echo "::add-matcher::${{ runner.tool_cache }}/php.json"
+        echo "::add-matcher::${{ runner.tool_cache }}/phpunit.json"
+
+    - name: Install PHP dependencies
+      run: composer update --${{ matrix.dependency-version }} --prefer-dist --no-interaction --no-progress --ansi --optimize-autoloader
+
+    - name: Build and start Playwright container
+      run: |
+        docker build -t playwright-server -f docker.test/Dockerfile.playwright docker.test/
+        docker run -d --name playwright -p 127.0.0.1:3000:3000 --add-host=host.docker.internal:host-gateway playwright-server
+
+    - name: Wait for Playwright server
+      run: |
+        timeout 30 bash -c 'until curl -s http://127.0.0.1:3000 > /dev/null 2>&1; do sleep 1; done' || echo "Playwright server ready or timeout"
+
+    - name: Tests
+      run: ./vendor/bin/pest --http-host=host.docker.internal --http-bind=0.0.0.0 --playwright-host=127.0.0.1 --playwright-port=3000
+
+    - name: Stop Playwright container
+      if: always()
+      run: docker stop playwright || true
+
+  # Scenario: Playwright in container, Pest in container
+  pest-in-container:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        php: ['8.3', '8.4', '8.5']
+        dependency-version: [prefer-stable]
+
+    name: Pest in Container - PHP ${{ matrix.php }}
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v6
+
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: ${{ matrix.php }}
+        tools: composer:v2
+        coverage: xdebug
+
+    - name: Setup Problem Matches
+      run: |
+        echo "::add-matcher::${{ runner.tool_cache }}/php.json"
+        echo "::add-matcher::${{ runner.tool_cache }}/phpunit.json"
+
+    - name: Install PHP dependencies
+      run: composer update --${{ matrix.dependency-version }} --prefer-dist --no-interaction --no-progress --ansi --optimize-autoloader
+
+    - name: Build Docker images
+      run: |
+        docker compose -f docker.test/docker-compose.yml build
+
+    - name: Start Playwright container
+      run: |
+        docker compose -f docker.test/docker-compose.yml up -d playwright
+
+    - name: Wait for Playwright server
+      run: |
+        timeout 30 bash -c 'until docker compose -f docker.test/docker-compose.yml exec -T playwright curl -s http://localhost:3000 > /dev/null 2>&1; do sleep 1; done' || echo "Playwright server ready or timeout"
+
+    - name: Run tests in Pest container
+      run: |
+        docker compose -f docker.test/docker-compose.yml run --rm pest -c "./vendor/bin/pest --http-bind=0.0.0.0 --http-host=pest --playwright-port=3000 --playwright-host=playwright"
+
+    - name: Stop containers
+      if: always()
+      run: docker compose -f docker.test/docker-compose.yml down

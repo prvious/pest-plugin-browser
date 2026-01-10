@@ -16,4 +16,7 @@ VOLUME ["/app"]
 
 WORKDIR /app
 
+# Set proper permissions for the /app directory
+RUN mkdir -p /app && chmod -R 777 /app
+
 ENTRYPOINT ["/bin/sh"]

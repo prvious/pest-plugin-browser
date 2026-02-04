@@ -40,4 +40,4 @@ it('can emulate being from another location', function (): void {
             ->assertSeeIn('#longitude', (string) $city->geolocation()['longitude'])
             ->assertDontSee('Waiting...');
     }
-});
+})->skip(fn () => getenv('PEST_SKIP_GEOLOCATION') === 'true', 'Geolocation requires secure origin');

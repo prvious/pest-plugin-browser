@@ -8,22 +8,22 @@ services:
       - "127.0.0.1:3000:3000"
     extra_hosts:
       - "host.docker.internal:host-gateway"
+
   pest:
     hostname: pest
     build:
-      context: ./
-      dockerfile: Dockerfile.pest
+      context: ../
+      dockerfile: docker.test/Dockerfile.pest
     user: "1000:1000"
-    volumes:
-      - type: bind
-        source: ./../
-        target: /app
     ports:
       - "127.0.0.1:3080:3080"
     extra_hosts:
       - "host.docker.internal:host-gateway"
+    environment:
+      - PEST_SKIP_GEOLOCATION=true
     depends_on:
       - playwright
+
 networks:
   default:
     ipam:

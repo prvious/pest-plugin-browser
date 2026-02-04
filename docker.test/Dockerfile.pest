@@ -6,14 +6,24 @@ RUN apk add --no-cache --virtual .build-deps $PHPIZE_DEPS linux-headers && \
     pecl install xdebug && \
     docker-php-ext-enable xdebug && \
     apk del .build-deps
-    
+
+# Install Composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
 # XDebug port
 EXPOSE 9003
 # Pest HTTP Server
 EXPOSE 3080
 
-VOLUME ["/app"]
-
 WORKDIR /app
 
-ENTRYPOINT ["/bin/sh"]
+# Copy application code
+COPY ./ /app
+
+# Install composer dependencies
+RUN composer update --prefer-stable --prefer-dist --no-interaction --no-progress --ansi --optimize-autoloader
+
+# Set proper permissions for the /app directory to allow user 1000 to write
+RUN chown -R 1000:1000 /app
+
+CMD ["tail", "-f", "/dev/null"]

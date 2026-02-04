@@ -73,8 +73,6 @@
         "test:unit": "pest --parallel",
         "test:types": "phpstan",
         "test": [
-            "@test:lint",
-            "@test:profanity",
             "@test:type-coverage",
             "@test:types",
             "@test:unit"

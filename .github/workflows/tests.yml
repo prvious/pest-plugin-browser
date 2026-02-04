@@ -87,6 +87,8 @@ jobs:
           timeout 30 bash -c 'until curl -s http://127.0.0.1:3000 > /dev/null 2>&1; do sleep 1; done' || echo "Playwright server ready or timeout"
 
       - name: Tests
+        env:
+          PEST_SKIP_GEOLOCATION: true
         run: ./vendor/bin/pest --parallel --http-host=host.docker.internal --http-bind=0.0.0.0 --playwright-host=127.0.0.1 --playwright-port=3000
 
       - name: Stop Playwright container

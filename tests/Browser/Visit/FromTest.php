@@ -6,8 +6,8 @@ use Illuminate\Support\Facades\Route;
 use Pest\Browser\Enums\City;
 
 it('can emulate being from another location', function (): void {
-    if (file_exists('/.dockerenv')) {
-        $this->markTestSkipped('Geolocation requires secure origin (skipped in Docker)');
+    if (getenv('PEST_SKIP_GEOLOCATION') === 'true') {
+        $this->markTestSkipped('Geolocation requires secure origin');
     }
     Route::get('/', fn (): string => '
         <html>

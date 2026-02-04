@@ -5,9 +5,6 @@ declare(strict_types=1);
 use Illuminate\Support\Facades\Route;
 
 test('may set geolocation', function (): void {
-    if (getenv('PEST_SKIP_GEOLOCATION') === 'true') {
-        $this->markTestSkipped('Geolocation requires secure origin');
-    }
     Route::get('/', fn (): string => '
         <html>
         <head></head>
@@ -35,4 +32,4 @@ test('may set geolocation', function (): void {
         ->assertSeeIn('#latitude', (string) $latitude)
         ->assertSeeIn('#longitude', (string) $longitude)
         ->assertDontSee('Waiting...');
-});
+})->skip(fn () => getenv('PEST_SKIP_GEOLOCATION') === 'true', 'Geolocation requires secure origin');

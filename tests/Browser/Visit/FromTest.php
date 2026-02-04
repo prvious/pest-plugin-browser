@@ -6,9 +6,6 @@ use Illuminate\Support\Facades\Route;
 use Pest\Browser\Enums\City;
 
 it('can emulate being from another location', function (): void {
-    if (getenv('PEST_SKIP_GEOLOCATION') === 'true') {
-        $this->markTestSkipped('Geolocation requires secure origin');
-    }
     Route::get('/', fn (): string => '
         <html>
         <head></head>
@@ -43,4 +40,4 @@ it('can emulate being from another location', function (): void {
             ->assertSeeIn('#longitude', (string) $city->geolocation()['longitude'])
             ->assertDontSee('Waiting...');
     }
-});
+})->skip(fn () => getenv('PEST_SKIP_GEOLOCATION') === 'true', 'Geolocation requires secure origin');

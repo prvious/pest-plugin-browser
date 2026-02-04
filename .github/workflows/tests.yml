@@ -87,7 +87,7 @@ jobs:
           timeout 30 bash -c 'until curl -s http://127.0.0.1:3000 > /dev/null 2>&1; do sleep 1; done' || echo "Playwright server ready or timeout"
 
       - name: Tests
-        run: ./vendor/bin/pest --http-host=host.docker.internal --http-bind=0.0.0.0 --playwright-host=127.0.0.1 --playwright-port=3000
+        run: ./vendor/bin/pest --parallel --http-host=host.docker.internal --http-bind=0.0.0.0 --playwright-host=127.0.0.1 --playwright-port=3000
 
       - name: Stop Playwright container
         if: always()
@@ -137,7 +137,7 @@ jobs:
 
       - name: Run tests in Pest container
         run: |
-          docker compose -f docker.test/docker-compose.yml run --rm pest -c "./vendor/bin/pest --http-bind=0.0.0.0 --http-host=pest --playwright-port=3000 --playwright-host=playwright"
+          docker compose -f docker.test/docker-compose.yml run --rm pest -c "./vendor/bin/pest --parallel --http-bind=0.0.0.0 --http-host=pest --playwright-port=3000 --playwright-host=playwright"
 
       - name: Stop containers
         if: always()

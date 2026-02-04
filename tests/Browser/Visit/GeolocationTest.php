@@ -5,6 +5,9 @@ declare(strict_types=1);
 use Illuminate\Support\Facades\Route;
 
 test('may set geolocation', function (): void {
+    if (file_exists('/.dockerenv')) {
+        $this->markTestSkipped('Geolocation requires secure origin (skipped in Docker)');
+    }
     Route::get('/', fn (): string => '
         <html>
         <head></head>
